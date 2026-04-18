@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- JRebel插件 - 热部署（Hot Reload）-->
+<!--
+  This is the JRebel configuration file. It maps the running application to your IDE workspace, enabling JRebel reloading for this project.
+  Refer to https://manuals.jrebel.com/jrebel/standalone/config.html for more information.
+-->
+<application generated-by="intellij" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.zeroturnaround.com" xsi:schemaLocation="http://www.zeroturnaround.com http://update.zeroturnaround.com/jrebel/rebel-2_3.xsd">
+    <!-- 项目标识符，对应你的应用名称-->
+	<id>netdisk</id>
+
+    <!-- 关键配置：告诉 JRebel 编译后的 class 文件在哪-->
+	<classpath>
+	    <!-- 这是 Maven/Gradle 编译输出的目录-->
+		<dir name="D:/项目代码/netdisk-all/netdisk-java/target/classes">
+		</dir>
+	</classpath>
+
+</application>
