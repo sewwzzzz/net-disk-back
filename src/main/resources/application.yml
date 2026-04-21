@@ -1,100 +1,52 @@
+# 基础配置文件 - 所有环境共享的配置
+
+# 服务器基础配置
 server:
-  port: 7090
   servlet:
     context-path: /api
     session:
       timeout: PT60M # session过期时间 60M 一个小时
 
+# Spring 基础配置
 spring:
+  # 多部分文件上传配置
   servlet:
     multipart:
       max-file-size: 15MB
       max-request-size: 15MB
+  
+  # 通用配置
   mvc:
     throw-exception-if-no-handler-found: true
   web:
     resources:
       add-mappings: false
   
-  # 数据库配置
-  datasource:
-    url: jdbc:mysql://127.0.0.1:3306/netdisk?serverTimezone=GMT%2B8&useUnicode=true&characterEncoding=utf8&autoReconnect=true&allowMultiQueries=true&useSSL=false&createDatabaseIfNotExist=true
-    username: root
-    password: hui200329
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    hikari:
-      pool-name: HikariCPDatasource
-      minimum-idle: 5
-      idle-timeout: 180000
-      maximum-pool-size: 10
-      auto-commit: true
-      max-lifetime: 1800000
-      connection-timeout: 30000
-      connection-test-query: SELECT 1
-
   # SQL 初始化配置 (Spring Boot 3)
   sql:
     init:
-      # 不初始化数据库
-      mode: never
-      # mode: always
       # 数据库初始化脚本位置
       schema-locations: classpath:schema.sql
       continue-on-error: true
-
-  # 发送邮件配置
+  
+  # 邮件配置 - 基础设置
   mail:
     host: smtp.qq.com
     port: 465
-    username: coder_zjh@qq.com
-    password: yrfnoflesmsvjhjf
     default-encoding: UTF-8
     properties:
       mail:
         smtp:
           socketFactory:
             class: javax.net.ssl.SSLSocketFactory
-        debug: true
-
-  # Redis 配置
-  data:
-    redis:
-      database: 0
-      host: 127.0.0.1
-      port: 6379
-      jedis:
-        pool:
-          max-active: 20
-          max-wait: -1
-          max-idle: 10
-          min-idle: 0
-      timeout: 2000
-
+  
   # 开启虚拟线程
   threads:
     virtual:
       enabled: true
 
-# 自定义项目配置
-project:
-  folder: D:/ProjectCode/netdisk-all/netdisk-back/upload-file
-  ffmpeg:
-    path: D:/ffmpeg/ffmpeg-2026-03-15-git-6ba0b59d8b-full_build/bin # FFmpeg bin目录路径,例如: C:/ffmpeg/bin (配置后无需依赖环境变量)
-
-log:
-  root:
-    level: debug
-
-admin:
-  emails: admin@qq.com # 明文密码 admin123456
-
-dev: false
-
-# QQ登录相关
+# QQ登录相关 - 基础URL配置
 qq:
-  app:
-    id: 123456
-    key: 123456
   url:
     authorization: https://graph.qq.com/oauth2.0/authorize?response_type=code&client_id=%s&redirect_uri=%s&state=%s
     access:
@@ -102,10 +54,13 @@ qq:
     openid: https://graph.qq.com/oauth2.0/me?access_token=%S
     user:
       info: https://graph.qq.com/user/get_user_info?access_token=%s&oauth_consumer_key=%s&openid=%s
-    redirect: http://netdisk.wuhancoder.com/qqlogincalback
 
-# 用户相关
+# 用户相关配置
 user:
   # 默认用户空间大小 1GB
   space:
     default: 1024
+
+# 管理员配置
+admin:
+  emails: admin@qq.com # 明文密码 admin123456

@@ -40,7 +40,9 @@
     </resultMap>
 
 
-    <!-- 通用查询结果字段-->
+    <!-- <sql>标签用于定义可重用的SQL片段，通过 <include>引用 -->
+
+    <!-- 通用查询结果字段 -->
     <sql id="base_column_list">
         file_id
         ,user_id,file_md5,file_pid,file_size,
@@ -49,6 +51,7 @@
 		 del_flag
     </sql>
 
+    <!-- 通用查询条件字段 -->
     <sql id="base_condition_filed">
         <if test="query.fileId != null and query.fileId!=''">
             and file_id = #{query.fileId}
@@ -108,6 +111,7 @@
             and file_id not in(<foreach collection="query.excludeFileIdArray" separator="," item="item">#{item}</foreach>)
         </if>
     </sql>
+
     <!-- 通用条件-->
     <sql id="base_condition">
         <where>
@@ -119,6 +123,7 @@
     <sql id="query_condition">
         <where>
             <include refid="base_condition_filed"/>
+            <!-- Fuzzy-模糊查询 -->
             <if test="query.fileIdFuzzy!= null  and query.fileIdFuzzy!=''">
                 and file_id like concat('%', #{query.fileIdFuzzy}, '%')
             </if>
@@ -164,16 +169,29 @@
         </where>
     </sql>
 
-    <!-- 查询集合-->
+
+    <!-- learn it, realize all -->
+    <!-- 查询集合 -->
+    <!-- resultMap 返回结果集  -->
+    <!-- 
+        SELECT file_id,user_id,file_md5,file_pid,file_size
+        ,(SELECT nick_name FROM user_info u WHERE u.user_id = f.user_id) nickName
+        FROM file_info f
+        WHERE file_id = 1 AND file_id LIKE %1%
+        ORDER BY file_id
+        LIMIT 0,10 
+    -->
     <select id="selectList" resultMap="base_result_map">
         SELECT
         <include refid="base_column_list"/>
         <if test="query.queryNickName!=null and query.queryNickName">
+        <!-- 子查询-查询用户昵称，将nick_name作为nickName添加到resultMap -->
             ,(select nick_name from user_info u where u.user_id = f.user_id) nickName
         </if>
         FROM file_info f
         <include refid="query_condition"/>
         <if test="query.orderBy!=null">
+        <!-- #{} 转义为普通字符串； ${} 直接拼接 -->
             order by ${query.orderBy}
         </if>
         <if test="query.simplePage!=null">
@@ -182,12 +200,19 @@
     </select>
 
     <!-- 查询数量-->
+    <!-- resultType 返回结果集类型 -->
     <select id="selectCount" resultType="java.lang.Integer">
+        <!-- 每一行记为1 -->
         SELECT count(1) FROM file_info
         <include refid="query_condition"/>
     </select>
 
     <!-- 插入 （匹配有值的字段）-->
+    <!-- 
+        INSERT INTO file_info 
+        (file_id, user_id, file_name, folder_type, del_flag)
+        VALUES ('f54321', 'u09876', 'new_folder', 1, 2) 
+    -->
     <insert id="insert" parameterType="com.netdisk.entity.po.FileInfo">
         INSERT INTO file_info
         <trim prefix="(" suffix=")" suffixOverrides=",">
@@ -293,6 +318,13 @@
     </insert>
 
     <!-- 插入或者更新 （匹配有值的字段）-->
+    <!-- 
+        INSERT INTO file_info
+        (file_id, user_id, file_name)
+        VALUES ('F123456','u09876','new_folder')
+        ON DUPLICATE KEY UPDATE
+        file_id = VALUES(file_id),user_id = VALUES(user_id), file_name = VALUES(file_name)
+    -->
     <insert id="insertOrUpdate" parameterType="com.netdisk.entity.po.FileInfo">
         INSERT INTO file_info
         <trim prefix="(" suffix=")" suffixOverrides=",">
@@ -449,6 +481,14 @@
     </insert>
 
     <!-- 添加 （批量插入）-->
+    <!-- 
+        INSERT INTO file_info
+        (file_id, user_id,file_name)
+        VALUES 
+        ('F123456','u09876','new_folder'),
+        ('F123457','u09876','new_folder2'),
+        ('F123458','u09876','new_folder3')
+    -->
     <insert id="insertBatch" parameterType="com.netdisk.entity.po.FileInfo">
         INSERT INTO file_info(
         file_id,
@@ -491,6 +531,16 @@
     </insert>
 
     <!-- 批量新增修改 （批量插入）-->
+    <!-- 
+        INSERT INTO file_info
+        (file_id, user_id,file_name)
+        VALUES 
+        ('F123456','u09876','new_folder'),
+        ('F123457','u09876','new_folder2'),
+        ('F123458','u09876','new_folder3')
+        ON DUPLICATE KEY UPDATE
+        file_id = VALUES(file_id),user_id = VALUES(user_id), file_name = VALUES(file_name)
+    -->
     <insert id="insertOrUpdateBatch" parameterType="com.netdisk.entity.po.FileInfo">
         INSERT INTO file_info(
         file_id,
@@ -550,6 +600,11 @@
     </insert>
 
     <!-- 根据FileIdAndUserId修改-->
+    <!-- 
+        UPDATE file_info
+        SET file_name = 'new_folder', file_pid = 'F123456'
+        WHERE file_id = 'F123456' AND user_id = 'u09876'
+    -->
     <update id="updateByFileIdAndUserId" parameterType="com.netdisk.entity.po.FileInfo">
         UPDATE file_info
         <set>
@@ -737,7 +792,9 @@
         </if>
     </delete>
 
+    <!-- 查询用户已用空间（字节）-->
     <select id="selectUseSpace" resultType="java.lang.Long">
+        <!-- 无文件时，返回0 Long -->
         select IFNULL(sum(file_size), 0)
         from file_info
         where user_id = #{userId}

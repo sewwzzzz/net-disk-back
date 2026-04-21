@@ -1,0 +1,91 @@
+# 生产环境配置
+
+# 服务器配置
+server:
+  port: 8080
+
+# 生产环境特定配置
+spring:
+  # 数据库配置 - 生产环境（使用ProxySQL）
+  datasource:
+    url: jdbc:mysql://${PROXYSQL_HOST:localhost}:${PROXYSQL_PORT:6033}/${DB_NAME:netdisk}?serverTimezone=GMT%2B8&useUnicode=true&characterEncoding=utf8&autoReconnect=true&allowMultiQueries=true&useSSL=true
+    username: ${DB_USERNAME:prod_user}
+    password: ${DB_PASSWORD:prod_password}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    # 连接池配置
+    hikari:
+      pool-name: HikariCPProxySQL
+      # 连接最大生命周期（毫秒）
+      max-lifetime: 1800000
+      # 连接空闲超时时间（毫秒）
+      idle-timeout: 180000
+      # 等待获取连接的时间（毫秒）
+      connection-timeout: 30000
+      # 连接池中最大连接数
+      maximum-pool-size: 30
+      # 连接池中保持的最小空闲连接数
+      minimum-idle: 15
+      # 自动提交事务
+      auto-commit: true
+      connection-test-query: SELECT 1
+  
+  # SQL 初始化配置 - 生产环境
+  sql:
+    init:
+      # 生产环境必须设置为never
+      mode: never
+  
+  # 邮件配置 - 生产环境
+  mail:
+    username: ${MAIL_USERNAME:prod@example.com}
+    password: ${MAIL_PASSWORD:prod_mail_password}
+    properties:
+      mail:
+        debug: false
+  
+  # Redis 配置 - 生产环境（一主一从+哨兵模式）
+  data:
+    redis:
+      # 选择Redis16个数据库中的一个
+      database: 0
+      # Redis 哨兵配置
+      sentinel:
+        master: ${REDIS_SENTINEL_MASTER:mymaster}
+        nodes: ${REDIS_SENTINEL_NODES:127.0.0.1:26379,127.0.0.1:26380,127.0.0.1:26381}
+      # Jedis 连接池配置
+      jedis:
+        pool:
+          # 连接池中最大活跃连接数
+          max-active: 40
+          # 连接池中最大等待时间（毫秒）
+          max-wait: -1
+          # 连接池中最大空闲连接数
+          max-idle: 15
+          # 连接池中最小空闲连接数
+          min-idle: 4
+      timeout: 5000
+
+# 自定义项目配置 - 生产环境
+project:
+  folder: ${UPLOAD_FOLDER:/opt/netdisk/upload-file}
+
+# 日志配置 - 生产环境
+log:
+  root:
+    level: info
+
+# 环境标识
+dev: false
+
+# QQ登录相关 - 生产环境
+qq:
+  app:
+    id: ${QQ_APP_ID:prod_app_id}
+    key: ${QQ_APP_KEY:prod_app_key}
+  url:
+    redirect: http://netdisk.wuhancoder.com/qqlogincalback
+
+# 自定义项目配置 - 基础设置
+project:
+  ffmpeg:
+    path: ${FFMPEG_PATH:/usr/bin/ffmpeg} # FFmpeg bin目录路径,例如: C:/ffmpeg/bin (配置后无需依赖环境变量)
